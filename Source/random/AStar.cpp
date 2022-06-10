@@ -55,9 +55,23 @@ TArray<FName> UAStar::get_neighbours(FString index, TArray<FouttputData> nodes)
     //return nodes[0].neighbours;
 }
 
+bool UAStar::checkConstraints(FString keyValue, TMap<FString, bool> checkBox) 
+{
+    bool checkIfKeyExist = checkBox.Contains(keyValue);
+    if (checkIfKeyExist){
+        UE_LOG(LogTemp, Warning, TEXT("Key exist %s"), *keyValue);
+        return checkBox[keyValue];
+    }
+    else {
+        UE_LOG(LogTemp, Warning, TEXT("Key does not exist %s"), *keyValue);
+        return false;
+    }
+    
+}
 
 
-TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, FouttputData start_node, FouttputData stop_node, TArray<FouttputData> nodes)
+
+TArray<FName> UAStar::AStar(TMap<FString, bool> checkBoxes_map, FName start_node_index, FName end_node_index, FouttputData start_node, FouttputData stop_node, TArray<FouttputData> nodes)
 {
     //FString toReturn = items[0].ToString();
     TArray<FString> nodes_arr;
@@ -66,12 +80,13 @@ TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, Fouttp
     TArray<FString> type_arr;
     TArray<float> distance_arr;
     TArray<FString> point_type_arr;
+    bool flagFound=false;
 
     // IMPORTANT HERE
 
     for (int i = 0; i < nodes.Num(); i++)
     {
-        nodes_arr.Add(FString::FromInt(i)); // unvisited nodes
+        nodes_arr.Add(FString::FromInt(i+2)); // unvisited nodes
         lng_arr.Add(nodes[i].lng);
         lat_arr.Add(nodes[i].lat);
         type_arr.Add(nodes[i].type);
@@ -96,6 +111,7 @@ TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, Fouttp
 
         // The algorithm executes until we visit all nodes
         FString current_min_node;
+    UE_LOG(LogTemp, Warning, TEXT("Before loop"));
     while (nodes_arr.Num() > 0)
     {
         current_min_node = TEXT("NULL");
@@ -113,8 +129,10 @@ TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, Fouttp
         // UE_LOG(LogTemp, Warning, TEXT("Output: %s"), *current_min_node);
         // The code block below retrieves the current node's neighbors and updates their distances
         TArray<FName> neighbours = get_neighbours(current_min_node, nodes);
+        int count;
         for (int i = 0; i < neighbours.Num(); i++)
         {
+            count++;
             FString neighbour_string = neighbours[i].ToString();
             int neighbour_value = FStringToInt(neighbour_string) - 2;
             if ((neighbour_value) >= 0)
@@ -122,7 +140,8 @@ TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, Fouttp
                 // UE_LOG(LogTemp, Warning, TEXT("Output: %d"), neighbour_value);
                 float tentative_value = shortest_path[current_min_node] + distance(lat_arr[FStringToInt(current_min_node)], lat_arr[neighbour_value], lng_arr[FStringToInt(current_min_node)], lng_arr[neighbour_value]) + H[neighbour_value];
                 FString new_neighbour = neighbours[i].ToString();
-                if (tentative_value < shortest_path[new_neighbour])
+                bool IsSelected = checkConstraints(point_type_arr[FStringToInt(current_min_node)], checkBoxes_map);
+                if (tentative_value < shortest_path[new_neighbour] && IsSelected)
                 {
                     shortest_path[new_neighbour] = tentative_value;
 
@@ -140,40 +159,47 @@ TArray<FName> UAStar::AStar(FName start_node_index, FName end_node_index, Fouttp
             // UE_LOG(LogTemp, Warning, TEXT("Output: %d %s"), neighbour_value,*current_min_node);
 
         }
+        UE_LOG(LogTemp, Warning, TEXT("Counters: %d"), count);
         // After visiting its neighbors, we mark the node as "visited"
         nodes_arr.Remove(current_min_node);
         if (current_min_node.Equals(end_node_index.ToString()))
         {
+            flagFound = true;
+            UE_LOG(LogTemp, Warning, TEXT("Counters if true: %d"), count);
             break;
         }
     }
 
-    // Post processing to get the final path
-    TArray<FName> path;
-    FString node = end_node_index.ToString();
-    while (node != start_node_index.ToString())
-    {
-        path.Add(FName(*node));
-        node = previous_nodes[node];
-        // UE_LOG(LogTemp, Warning, TEXT("Output: %s"), *previous_nodes[node]);
+    if (flagFound) {
+        // Post processing to get the final path
+        TArray<FName> path;
+        FString node = end_node_index.ToString();
+        while (node != start_node_index.ToString())
+        {
+            path.Add(FName(*node));
+            node = previous_nodes[node];
+            // UE_LOG(LogTemp, Warning, TEXT("Output: %s"), *previous_nodes[node]);
+        }
+
+        // Add the start node manually
+        path.Add(start_node_index);
+
+        // Reverse the path
+        Algo::Reverse(path);
+
+
+        // DEBUG EXAMPLE
+        UE_LOG(LogTemp, Warning, TEXT("Output: %s"), previous_nodes.Contains(end_node_index.ToString()) ? TEXT("TRUE") : TEXT("False"));
+
+
+        return path;
+        // return( FString::SanitizeFloat(H[0]));
+        // return final_node;
+        // return FString::FromInt(shortest_path[start_node_index.ToString()]);
+        // return nodes[0].neighbours[0].ToString();
+        // return (FString::Printf(TEXT("Hello Unreal, %d + %d = %d"),a,b,foo));
+    } else {
+        TArray<FName> path;
+        return path;
     }
-
-    // Add the start node manually
-    path.Add(start_node_index);
-
-    // Reverse the path
-    Algo::Reverse(path);
-
-
-    // DEBUG EXAMPLE
-    UE_LOG(LogTemp, Warning, TEXT("Output: %s"), previous_nodes.Contains(end_node_index.ToString()) ? TEXT("TRUE") : TEXT("False"));
-
-
-    return path;
-    // return( FString::SanitizeFloat(H[0]));
-    // return final_node;
-    // return FString::FromInt(shortest_path[start_node_index.ToString()]);
-    // return nodes[0].neighbours[0].ToString();
-    // return (FString::Printf(TEXT("Hello Unreal, %d + %d = %d"),a,b,foo));
-
 }

@@ -34,7 +34,7 @@ class RANDOM_API UAStar : public UBlueprintFunctionLibrary
 {
     GENERATED_BODY()
         UFUNCTION(BlueprintCallable, Category = "myCategory")
-        static TArray<FName> AStar(FName start_node_index, FName end_node_index, FouttputData start_node, FouttputData stop_node, TArray<FouttputData> items);
+        static TArray<FName> AStar(TMap<FString, bool> checkBoxes_map,FName start_node_index, FName end_node_index, FouttputData start_node, FouttputData stop_node, TArray<FouttputData> items);
 
     static float distance(float lat1, float lat2, float long1, float long2);
 
@@ -45,4 +45,6 @@ class RANDOM_API UAStar : public UBlueprintFunctionLibrary
     static TArray<FName> get_neighbours(FString index, TArray<FouttputData> nodes);
 
     static int FStringToInt(FString theString);
+    
+    static bool checkConstraints(FString keyValue, TMap<FString, bool> checkBox);
 };
