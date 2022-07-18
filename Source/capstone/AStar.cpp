@@ -69,8 +69,6 @@ bool UAStar::checkConstraints(FString keyValue, TMap<FString, bool> checkBox)
 
 }
 
-
-
 TArray<FName> UAStar::AStar(TMap<FString, bool> checkBoxes_map, FName start_node_index, FName end_node_index, FouttputData start_node, FouttputData stop_node, TArray<FouttputData> nodes)
 {
     //FString toReturn = items[0].ToString();
