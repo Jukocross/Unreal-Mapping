@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "StringToJson.h"
 #include "Misc/FileHelper.h"
 #include "HAL/PlatformFilemanager.h"
-#include "StringToJson.h"
 
 bool UStringToJson::SaveStringToFile(FString SaveDirectory, FString FileName, FString SaveText, bool AllowOverwriting = false)
 {
