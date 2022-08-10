@@ -175,7 +175,15 @@ TArray<FName> UAStar::AStar(TMap<FString, bool> checkBoxes_map, FName start_node
         while (node != start_node_index.ToString())
         {
             path.Add(FName(*node));
-            node = previous_nodes[node];
+            if (previous_nodes.Contains(node)) // Added check for node
+            {
+                node = previous_nodes[node];
+            }
+            else
+            {
+                TArray<FName> emptyPath;
+                return emptyPath;
+            }
             // UE_LOG(LogTemp, Warning, TEXT("Output: %s"), *previous_nodes[node]);
         }
 
